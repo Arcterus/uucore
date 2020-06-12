@@ -133,10 +133,7 @@ impl<'a: 'b, 'b> CoreOptions<'a, 'b> {
         if let Some(long_help) = help_text.long_help {
             app = app.after_help(long_help);
         }
-        app = app.arg(Arg::with_name("ARGS")
-                      .index(1)
-                      .multiple(true)
-                      .hidden(true));
+        app = app.arg(Arg::with_name("ARGS").index(1).multiple(true).hidden(true));
 
         CoreOptions {
             short_to_long: Rc::new(Default::default()),
@@ -206,7 +203,9 @@ impl<'a: 'b, 'b> CoreOptions<'a, 'b> {
         long_name: &'a str,
         desc: &'a str,
     ) -> &mut CoreOptions<'a, 'b> {
-        self.optcommon(short_name, long_name, desc, |arg| arg.multiple(true).allow_hyphen_values(false))
+        self.optcommon(short_name, long_name, desc, |arg| {
+            arg.multiple(true).allow_hyphen_values(false)
+        })
     }
 
     pub fn optopt(
@@ -216,7 +215,9 @@ impl<'a: 'b, 'b> CoreOptions<'a, 'b> {
         desc: &'a str,
         hint: &'a str,
     ) -> &mut CoreOptions<'a, 'b> {
-        self.optcommon(short_name, long_name, desc, |arg| arg.takes_value(true).value_name(hint))
+        self.optcommon(short_name, long_name, desc, |arg| {
+            arg.takes_value(true).value_name(hint)
+        })
     }
 
     pub fn optmulti(
@@ -226,29 +227,37 @@ impl<'a: 'b, 'b> CoreOptions<'a, 'b> {
         desc: &'a str,
         hint: &'a str,
     ) -> &mut CoreOptions<'a, 'b> {
-        self.optcommon(short_name, long_name, desc, |arg| arg.multiple(true).takes_value(true).value_name(hint))
+        self.optcommon(short_name, long_name, desc, |arg| {
+            arg.multiple(true).takes_value(true).value_name(hint)
+        })
     }
 
-    fn optcommon<F>(&mut self, short_name: &'a str, long_name: &'a str, desc: &'a str, func: F) -> &mut CoreOptions<'a, 'b>
+    fn optcommon<F>(
+        &mut self,
+        short_name: &'a str,
+        long_name: &'a str,
+        desc: &'a str,
+        func: F,
+    ) -> &mut CoreOptions<'a, 'b>
     where
         F: Fn(Arg<'a, 'b>) -> Arg<'a, 'b>,
     {
         let options = self.options.take();
         self.options = options.map(|opts| {
             let arg = if !long_name.is_empty() {
-                let long = Arg::with_name(long_name)
-                    .long(long_name);
+                let long = Arg::with_name(long_name).long(long_name);
 
                 if !short_name.is_empty() {
-                    Rc::get_mut(&mut self.short_to_long).unwrap().insert(short_name, long_name);
+                    Rc::get_mut(&mut self.short_to_long)
+                        .unwrap()
+                        .insert(short_name, long_name);
 
                     long.short(short_name)
                 } else {
                     long
                 }
             } else if !short_name.is_empty() {
-                Arg::with_name(short_name)
-                    .short(short_name)
+                Arg::with_name(short_name).short(short_name)
             } else {
                 // TODO: gracefully handle errors rather than panicking
                 panic!("option has neither a short nor a long name")
@@ -261,9 +270,17 @@ impl<'a: 'b, 'b> CoreOptions<'a, 'b> {
     }
 
     pub fn parse(&mut self, args: Vec<String>) -> Matches<'a> {
-        let matches = match self.options.clone().unwrap().get_matches_from_safe(&args[..]) {
+        let matches = match self
+            .options
+            .clone()
+            .unwrap()
+            .get_matches_from_safe(&args[..])
+        {
             Ok(m) => m,
-            Err(ref f) if f.kind == clap::ErrorKind::HelpDisplayed || f.kind == clap::ErrorKind::VersionDisplayed => {
+            Err(ref f)
+                if f.kind == clap::ErrorKind::HelpDisplayed
+                    || f.kind == clap::ErrorKind::VersionDisplayed =>
+            {
                 print!("{}", f);
                 process::exit(0);
             }
@@ -273,7 +290,10 @@ impl<'a: 'b, 'b> CoreOptions<'a, 'b> {
             }
         };
 
-        let free = matches.values_of("ARGS").map(|vals| vals.map(ToOwned::to_owned).collect()).unwrap_or_default();
+        let free = matches
+            .values_of("ARGS")
+            .map(|vals| vals.map(ToOwned::to_owned).collect())
+            .unwrap_or_default();
 
         Matches {
             short_to_long: self.short_to_long.clone(),
