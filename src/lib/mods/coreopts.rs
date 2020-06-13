@@ -95,6 +95,13 @@ impl<'a> Matches<'a> {
         false
     }
 
+    pub fn opts_str(&self, names: &[String]) -> Option<String> {
+        names
+            .iter()
+            .filter_map(|nm| self.opt_str(nm))
+            .next()
+    }
+
     pub fn opt_str(&self, nm: &str) -> Option<String> {
         let nm = self.convert_name(nm);
         self.inner.value_of(nm).map(ToOwned::to_owned)
