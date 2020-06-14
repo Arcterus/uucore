@@ -1,45 +1,9 @@
-/*
- * This file is part of the uutils coreutils package.
- *
- * (c) Alex Lyon <arcterus@mail.com>
- *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
- */
-
-// #[macro_export]
-// macro_rules! main { ($($arg:tt)+) => ({
-//     extern crate uu_arch;
-//     use std::io::Write;
-//     use uu_arch::uumain;
-
-//     fn main() {
-//         uucore::panic::install_sigpipe_hook();
-
-//         let code = uumain(uucore::args().collect());
-//         // Since stdout is line-buffered by default, we need to ensure any pending
-//         // writes are flushed before exiting. Ideally, this should be enforced by
-//         // each utility.
-//         //
-//         // See: https://github.com/rust-lang/rust/issues/23818
-//         //
-//         std::io::stdout().flush().expect("could not flush stdout");
-//         std::process::exit(code);
-//     }
-// })}
-
-// extern crate proc_macro;
-// use proc_macro::TokenStream;
-// #[proc_macro_attribute]
-// pub fn hello(attr: TokenStream, item: TokenStream) -> TokenStream {
-//     let result = quote! {
-//         fn main() {
-//             uucore::panic::install_sigpipe_hook();
-//             std::io::stdout().flush().expect("could not flush stdout");
-//             std::process::exit(code);
-//         }
-//     };
-// }
+// This file is part of the uutils coreutils package.
+//
+// (c) Alex Lyon <arcterus@mail.com>
+//
+// For the full copyright and license information, please view the LICENSE
+// file that was distributed with this source code.
 
 #[macro_export]
 macro_rules! executable(
@@ -89,37 +53,37 @@ macro_rules! show_usage_error(
 
 #[macro_export]
 macro_rules! crash(
-    ($exitcode:expr, $($args:tt)+) => ({
+    ($exit_code:expr, $($args:tt)+) => ({
         show_error!($($args)+);
-        ::std::process::exit($exitcode)
+        ::std::process::exit($exit_code)
     })
 );
 
 #[macro_export]
 macro_rules! exit(
-    ($exitcode:expr) => ({
-        ::std::process::exit($exitcode)
+    ($exit_code:expr) => ({
+        ::std::process::exit($exit_code)
     })
 );
 
 #[macro_export]
 macro_rules! crash_if_err(
-    ($exitcode:expr, $exp:expr) => (
+    ($exit_code:expr, $exp:expr) => (
         match $exp {
             Ok(m) => m,
-            Err(f) => crash!($exitcode, "{}", f),
+            Err(f) => crash!($exit_code, "{}", f),
         }
     )
 );
 
 #[macro_export]
 macro_rules! return_if_err(
-    ($exitcode:expr, $exp:expr) => (
+    ($exit_code:expr, $exp:expr) => (
         match $exp {
             Ok(m) => m,
             Err(f) => {
                 show_error!("{}", f);
-                return $exitcode;
+                return $exit_code;
             }
         }
     )
@@ -164,8 +128,8 @@ macro_rules! snippet_list_join_oxford {
     ($conjunction:expr, $valOne:expr, $valTwo:expr) => (
         format!("{}, {} {}", $valOne, $conjunction, $valTwo)
     );
-    ($conjunction:expr, $valOne:expr, $valTwo:expr $(, $remainingVals:expr)*) => (
-        format!("{}, {}", $valOne, snippet_list_join_inner!($conjunction, $valTwo $(, $remainingVals)*))
+    ($conjunction:expr, $valOne:expr, $valTwo:expr $(, $remaining_values:expr)*) => (
+        format!("{}, {}", $valOne, snippet_list_join_inner!($conjunction, $valTwo $(, $remaining_values)*))
     );
 }
 
@@ -174,8 +138,8 @@ macro_rules! snippet_list_join_or {
     ($valOne:expr, $valTwo:expr) => (
         format!("{} or {}", $valOne, $valTwo)
     );
-    ($valOne:expr, $valTwo:expr $(, $remainingVals:expr)*) => (
-        format!("{}, {}", $valOne, snippet_list_join_oxford!("or", $valTwo $(, $remainingVals)*))
+    ($valOne:expr, $valTwo:expr $(, $remaining_values:expr)*) => (
+        format!("{}, {}", $valOne, snippet_list_join_oxford!("or", $valTwo $(, $remaining_values)*))
     );
 }
 
@@ -202,10 +166,10 @@ macro_rules! msg_invalid_opt_use {
     ($about:expr, $flag:expr) => {
         msg_invalid_input!(format!("The '{}' option {}", $flag, $about))
     };
-    ($about:expr, $longflag:expr, $shortflag:expr) => {
+    ($about:expr, $long_flag:expr, $short_flag:expr) => {
         msg_invalid_input!(format!(
             "The '{}' ('{}') option {}",
-            $longflag, $shortflag, $about
+            $long_flag, $short_flag, $about
         ))
     };
 }
@@ -215,8 +179,8 @@ macro_rules! msg_opt_only_usable_if {
     ($clause:expr, $flag:expr) => {
         msg_invalid_opt_use!(format!("only usable if {}", $clause), $flag)
     };
-    ($clause:expr, $longflag:expr, $shortflag:expr) => {
-        msg_invalid_opt_use!(format!("only usable if {}", $clause), $longflag, $shortflag)
+    ($clause:expr, $long_flag:expr, $short_flag:expr) => {
+        msg_invalid_opt_use!(format!("only usable if {}", $clause), $long_flag, $short_flag)
     };
 }
 
@@ -228,11 +192,11 @@ macro_rules! msg_opt_invalid_should_be {
             $flag
         )
     };
-    ($expects:expr, $received:expr, $longflag:expr, $shortflag:expr) => {
+    ($expects:expr, $received:expr, $long_flag:expr, $short_flag:expr) => {
         msg_invalid_opt_use!(
             format!("expects {}, but was provided {}", $expects, $received),
-            $longflag,
-            $shortflag
+            $long_flag,
+            $short_flag
         )
     };
 }
@@ -290,14 +254,14 @@ macro_rules! msg_wrong_number_of_arguments {
 
 #[macro_export]
 macro_rules! msg_expects_one_of {
-    ($valOne:expr $(, $remainingVals:expr)*) => (
-        msg_invalid_input!(format!("expects one of {}", snippet_list_join_or!($valOne $(, $remainingVals)*)))
+    ($valOne:expr $(, $remaining_values:expr)*) => (
+        msg_invalid_input!(format!("expects one of {}", snippet_list_join_or!($valOne $(, $remaining_values)*)))
     );
 }
 
 #[macro_export]
 macro_rules! msg_expects_no_more_than_one_of {
-    ($valOne:expr $(, $remainingVals:expr)*) => (
-        msg_invalid_input!(format!("expects no more than one of {}", snippet_list_join_or!($valOne $(, $remainingVals)*))) ;
+    ($valOne:expr $(, $remaining_values:expr)*) => (
+        msg_invalid_input!(format!("expects no more than one of {}", snippet_list_join_or!($valOne $(, $remaining_values)*))) ;
     );
 }

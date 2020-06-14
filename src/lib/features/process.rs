@@ -5,7 +5,9 @@
 //
 // For the full copyright and license information, please view the LICENSE file
 // that was distributed with this source code.
-//
+
+// spell-checker:ignore (vars) cvar exitstatus
+// spell-checker:ignore (sys/unix) WIFSIGNALED
 
 use libc::{c_int, gid_t, pid_t, uid_t};
 use std::fmt;
@@ -41,7 +43,7 @@ pub enum ExitStatus {
 impl ExitStatus {
     fn from_status(status: c_int) -> ExitStatus {
         if status & 0x7F != 0 {
-            // WIFSIGNALED(status)
+            // WIFSIGNALED(status) == terminating by/with unhandled signal
             ExitStatus::Signal(status & 0x7F)
         } else {
             ExitStatus::Code(status & 0xFF00 >> 8)

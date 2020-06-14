@@ -1,9 +1,9 @@
 #![allow(dead_code)] // work-around for GH:rust-lang/rust#62127; maint: can be removed when MinSRV >= v1.38.0
 #![allow(unused_macros)] // work-around for GH:rust-lang/rust#62127; maint: can be removed when MinSRV >= v1.38.0
 
-extern crate proc_macro;
+// Copyright (C) ~ Roy Ivy III <rivy.dev@gmail.com>; MIT license
 
-// spell-checker:ignore () SIGPIPE maint uucore uumain uutils
+extern crate proc_macro;
 
 //## rust proc-macro background info
 //* ref: <https://dev.to/naufraghi/procedural-macro-in-rust-101-k3f> @@ <http://archive.is/Vbr5e>
